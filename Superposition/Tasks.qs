@@ -37,6 +37,7 @@ namespace Quantum.Kata.Superposition {
         // Then rebuild the project and rerun the tests - T01_PlusState_Test should now pass!
 
         // ...
+        H(qs[0]);
     }
     
     
@@ -47,6 +48,8 @@ namespace Quantum.Kata.Superposition {
         // In this task, as well as in all subsequent ones, you have to come up with the solution yourself.
             
         // ...
+        H(qs[0]);
+        Z(qs[0]);
     }
     
     
@@ -60,6 +63,7 @@ namespace Quantum.Kata.Superposition {
         // Note that all rotation operators rotate the state by _half_ of its angle argument.
 
         // ...
+        Ry(2.0*alpha, qs[0]);
     }
     
     
@@ -72,6 +76,8 @@ namespace Quantum.Kata.Superposition {
         AssertIntEqual(Length(qs), 2, "The array should have exactly 2 qubits.");
 
         // ...
+        H(qs[0]);
+        H(qs[1]);
     }
     
     
@@ -84,7 +90,10 @@ namespace Quantum.Kata.Superposition {
         AssertIntEqual(Length(qs), 2, "The array should have exactly 2 qubits.");
 
         // Hint: Is this state separable?
-        // ...
+        // (0-1)(0+i1)
+        H(qs[0]); H(qs[1]);
+        Z(qs[0]); // -
+        S(qs[1]); // 0+i1
     }
     
     
@@ -93,6 +102,8 @@ namespace Quantum.Kata.Superposition {
     // Goal: create a Bell state |Φ⁺⟩ = (|00⟩ + |11⟩) / sqrt(2) on these qubits.
     operation BellState (qs : Qubit[]) : Unit {
         // ...
+        H(qs[0]);
+        CNOT(qs[0], qs[1]);
     }
     
     
@@ -107,6 +118,14 @@ namespace Quantum.Kata.Superposition {
     //       3: |Ψ⁻⟩ = (|01⟩ - |10⟩) / sqrt(2)
     operation AllBellStates (qs : Qubit[], index : Int) : Unit {
         // ...
+        H(qs[0]);
+        CNOT(qs[0], qs[1]);
+        if(index%2 == 1){ //1,3
+            Z(qs[1]);
+        }
+        if(index/2 == 1){ //2,3
+            X(qs[1]);
+        }
     }
     
     
@@ -117,6 +136,12 @@ namespace Quantum.Kata.Superposition {
         // Hint: N can be found as Length(qs).
 
         // ...
+        let n = Length(qs);
+        H(qs[0]);
+        // 000000 + 100..
+        for(index in 1..n-1){
+            CNOT(qs[0], qs[index]);
+        }
     }
     
     
@@ -126,6 +151,10 @@ namespace Quantum.Kata.Superposition {
     // (i.e. state (|0...0⟩ + ... + |1...1⟩) / sqrt(2^N) ).
     operation AllBasisVectorsSuperposition (qs : Qubit[]) : Unit {
         // ...
+        let n = Length(qs);
+        for(index in 0..n-1){
+            H(qs[index]);
+        }
     }
     
     
@@ -145,6 +174,13 @@ namespace Quantum.Kata.Superposition {
         AssertBoolEqual(bits[0], true, "First bit of the input bit string should be set to true");
 
         // ...
+        H(qs[0]);
+        let n = Length(qs);
+        for(index in 1..n-1){
+            if(bits[index]){
+                CNOT(qs[0], qs[index]);
+            }
+        }
     }
     
     
@@ -160,6 +196,42 @@ namespace Quantum.Kata.Superposition {
     // and that the bit strings will differ in at least one bit.
     operation TwoBitstringSuperposition (qs : Qubit[], bits1 : Bool[], bits2 : Bool[]) : Unit {
         // ...
+        let n = Length(qs);
+        // why is below wrong?
+        // using(anc = Qubit()){
+        //     H(anc);
+        //     for(i in 0..n-1){
+        //         if(bits1[i] != bits2[i]){
+        //             CNOT(anc, qs[i]);
+        //         }
+        //         if(bits1[i]){
+        //             X(qs[i]);
+        //         }
+        //     }
+        //     Reset(anc);
+        // }
+
+        mutable idx1 = 0; // index where they differ
+        for(i in 0..n-1){
+            if(bits1[i] != bits2[i]){
+                set idx1 = i;
+            }
+        }
+        H(qs[idx1]);
+        for(i in 0..n-1){
+            if(i != idx1){
+                if(bits1[i] != bits2[i]){
+                    CNOT(qs[idx1], qs[i]);
+                }
+                if(bits1[i]){
+                    X(qs[i]);
+                }
+            }
+        }
+        if(bits1[idx1]) {
+            X(qs[idx1]);
+        }
+
     }
     
     
@@ -171,7 +243,26 @@ namespace Quantum.Kata.Superposition {
     operation WState_PowerOfTwo (qs : Qubit[]) : Unit {
             // Hint: you can use Controlled modifier to perform arbitrary controlled gates.
 
-            // ...
+            let n = Length(qs);
+            if(n==1){
+                // 1
+                X(qs[0]);
+            } else {
+                let n1 = n/2;
+                WState_PowerOfTwo(qs[0..n1-1]);
+                // W0^{n/2}
+                using(anc = Qubit()){
+                    H(anc);
+                    // 0W0^n1 + 1W0^n1
+                    for(i in n1..n-1){
+                        // 1W_i0^n1 -> 10^n1W_i -> 00^n1Wi
+                        // 0W_i0^n1 -> 0W_i0^n1 -> 0W_i0^n1
+                        Controlled SWAP([anc], (qs[i-n1], qs[i]));
+                        CNOT(qs[i], anc);
+                    }
+                    Reset(anc);
+                }
+            }
     }
     
     
@@ -181,7 +272,26 @@ namespace Quantum.Kata.Superposition {
     // W state is an equal superposition of all basis states on N qubits of Hamming weight 1.
     // Example: for N = 3, W state is (|100⟩ + |010⟩ + |001⟩) / sqrt(3).
     operation WState_Arbitrary (qs : Qubit[]) : Unit {
+        body (...){
             // ...
+            let n = Length(qs);
+            if(n == 1){
+                X(qs[0]);
+            } else {
+                let theta = ArcSin(Sqrt(1.0/ToDouble(n)));
+                Ry(2.0 * theta, qs[0]); // sqrt(1/n)|0^n> + sqrt(n-1/n)|10^{n-1}>
+                
+                X(qs[0]);
+                Controlled WState_Arbitrary([qs[0]], qs[1..n-1]); // sqrt(1/n-1)|0W_{n-1}>
+                X(qs[0]);
+
+            }
+        }
+        adjoint invert;
+        controlled distribute;
+        controlled adjoint distribute;
     }
+
+    
     
 }

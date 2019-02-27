@@ -47,7 +47,7 @@ namespace Quantum.Kata.BasicGates {
             // The Pauli X gate will change the |0⟩ state to the |1⟩ state and vice versa.
             // Type X(q);
             // Then rebuild the project and rerun the tests - T11_StateFlip_Test should now pass!
-            
+            X(q);
             // ...
         }
         
@@ -67,8 +67,9 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            H(q);
         }
-        
+    
         adjoint self;
     }
     
@@ -80,6 +81,8 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            S(q);
+            S(q);
         }
         
         adjoint self;
@@ -98,6 +101,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Ry(2.0*alpha, q);
         }
         
         adjoint invert;
@@ -111,6 +115,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            S(q);
         }
         
         adjoint invert;
@@ -129,6 +134,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            R1(alpha, q);
         }
         
         adjoint invert;
@@ -142,6 +148,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Z(qs[1]);
         }
         
         adjoint invert;
@@ -155,6 +162,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            X(qs[1]);
         }
         
         adjoint invert;
@@ -168,6 +176,8 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Z(qs[1]);
+            X(qs[1]);
         }
         
         adjoint invert;
@@ -190,6 +200,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            (Controlled X)([qs[0]], qs[1]);
         }
         
         adjoint self;
@@ -206,6 +217,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Controlled Z([qs[0]], qs[1]);
         }
         
         adjoint self;
@@ -224,6 +236,7 @@ namespace Quantum.Kata.BasicGates {
             // (possibly controlled) Pauli gates.
             
             // ...
+            SWAP(qs[0], qs[1]);
         }
         
         adjoint self;
@@ -240,6 +253,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Controlled X([qs[0], qs[1]], qs[2]);
         }
         
         adjoint self;
@@ -255,6 +269,7 @@ namespace Quantum.Kata.BasicGates {
         
         body (...) {
             // ...
+            Controlled SWAP([qs[0]], (qs[1], qs[2]));
         }
         
         adjoint self;
